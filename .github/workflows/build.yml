@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -23,10 +23,16 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Setup Android SDK
+      - name: Setup Android SDK command-line tools
         uses: android-actions/setup-android@v3
-        with:
-          packages: 'tools platform-tools platforms;android-35 build-tools;35.0.0'
+        continue-on-error: true
+
+      - name: Accept licenses and install required packages
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" || true
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls -la $ANDROID_HOME || true
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -35,6 +41,8 @@ jobs:
 
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace --no-daemon
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -46,4 +54,4 @@ jobs:
 
       - name: List outputs
         if: always()
-        run: find app/build/outputs -type f 2>/dev/null || echo "No outputs yet"
+        run: find app/build/outputs -type f 2>/dev/null || echo "No outputs"
