@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Voice</string>
+    <string name="assistant_label">Voice by Spark</string>
+    <string name="assistant_description">Local-first AI digital assistant by FeatherTech</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Voice</string>
+    <string name="dashboard_subtitle">by Spark · FeatherTech</string>
+    <string name="status_ready">Ready</string>
+    <string name="status_not_default">Not set as default assistant</string>
+    <string name="action_set_default">Set as default assistant</string>
+    <string name="action_open_settings">Assistant settings</string>
+    <string name="action_permissions">Permissions</string>
+    <string name="phase_label">Phase 1 — Foundation</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_about">About Voice</string>
+    <string name="settings_version">Version 0.1.0 (Phase 1)</string>
+</resources>

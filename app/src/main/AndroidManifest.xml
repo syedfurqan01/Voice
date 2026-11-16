@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Required for speech recognition later (Phase 2) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+
+    <application
+        android:name=".VoiceApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Voice"
+        tools:targetApi="35">
+
+        <!-- Main dashboard activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Voice"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Voice Interaction Service — this is what allows the user
+            to select Voice as the default Android digital assistant.
+        -->
+        <service
+            android:name=".assistant.VoiceAssistantService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION"
+            android:label="@string/assistant_label">
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/voice_interaction_service" />
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+        </service>
+
+        <!-- Session that runs when the assistant is invoked -->
+        <activity
+            android:name=".assistant.VoiceAssistantSessionActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Voice.Assistant"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:documentLaunchMode="never"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true">
+            <intent-filter>
+                <action android:name="android.intent.action.ASSIST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Settings deep-link target -->
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Voice"
+            android:parentActivityName=".MainActivity" />
+
+    </application>
+
+</manifest>

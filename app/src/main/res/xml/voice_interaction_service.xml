@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Metadata that tells the system this service can act as a VoiceInteractionService
+  (the component required to become the default digital assistant).
+-->
+<voice-interaction-service
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="com.feathertech.voice.assistant.VoiceAssistantSessionService"
+    android:recognitionService="com.feathertech.voice.assistant.VoiceRecognitionService"
+    android:settingsActivity="com.feathertech.voice.ui.settings.SettingsActivity"
+    android:supportsAssist="true"
+    android:supportsLaunchVoiceAssistFromKeyguard="true"
+    android:supportsLocalInteraction="true" />
