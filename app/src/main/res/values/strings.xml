@@ -4,7 +4,6 @@
     <string name="assistant_label">Voice by Spark</string>
     <string name="assistant_description">Local-first AI digital assistant by FeatherTech</string>
 
-    <!-- Dashboard -->
     <string name="dashboard_title">Voice</string>
     <string name="dashboard_subtitle">by Spark · FeatherTech</string>
     <string name="status_ready">Ready</string>
@@ -12,10 +11,14 @@
     <string name="action_set_default">Set as default assistant</string>
     <string name="action_open_settings">Assistant settings</string>
     <string name="action_permissions">Permissions</string>
-    <string name="phase_label">Phase 1 — Foundation</string>
+    <string name="phase_label">Phase 2 — Speech + TTS</string>
 
-    <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_about">About Voice</string>
-    <string name="settings_version">Version 0.1.0 (Phase 1)</string>
+    <string name="settings_version">Version 0.2.0 (Phase 2)</string>
+
+    <string name="mic_permission_rationale">Voice needs the microphone to hear your commands. Audio is processed by the system recognition service and is not stored by the app.</string>
+    <string name="listening">Listening…</string>
+    <string name="processing">Processing…</string>
+    <string name="network_note">Recognition uses the system service (network required)</string>
 </resources>
