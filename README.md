@@ -7,47 +7,48 @@ Selectable as the default Android digital assistant.
 
 ## Current status
 
-**Phase 0 + Phase 1 complete**
+**Phase 2 complete** — Speech recognition + Text-to-Speech
 
-- Project foundation (Kotlin + Jetpack Compose + modular structure)
-- Minimal premium dark UI dashboard
-- VoiceInteractionService registered so the system can select Voice as default assistant
+- Project foundation (Kotlin + Jetpack Compose)
+- Default digital assistant registration
+- Minimal premium dark dashboard
+- System SpeechRecognizer (partial results, Hindi + English)
+- Text-to-Speech with rate/pitch and duplicate guard
+- Command processor: Hello, name, capabilities, time, open settings, stop speaking/listening
 - Temporary session overlay only (no permanent floating bubble)
-- GitHub Actions workflow that builds and uploads the debug APK
+- Honest network status for recognition
+- GitHub Actions → debug APK artifact
 
 ## Roadmap
 
 | Phase | Focus |
 |-------|--------|
-| 0 | Architecture & project foundation |
-| 1 | Android assistant foundation + dashboard |
-| 2 | Speech recognition + Text-to-Speech |
-| 3 | Local AI brain (llama.cpp + quantized GGUF) |
-| 4 | Phone control (Accessibility, Intents, system APIs) |
-| 5 | App-specific workflows (YouTube, Instagram, WhatsApp…) |
-| 6 | Opt-in adaptive learning & local workflow memory |
-| 7 | Multi-step autonomous tasks + release |
+| 0–1 | Architecture, assistant foundation, dashboard |
+| **2** | **Speech recognition + TTS** |
+| 3 | Local AI brain (llama.cpp + GGUF) |
+| 4 | Phone control (Accessibility, Intents) |
+| 5 | App workflows (YouTube, Instagram, WhatsApp…) |
+| 6 | Opt-in adaptive learning |
+| 7 | Multi-step tasks + release |
 
 ## Build
 
-Push to `main` or run the workflow manually → download the **voice-debug-apk** artifact.
+Push to `main` or run the workflow manually → download **voice-debug-apk**.
 
 ```bash
-./gradlew assembleDebug
+gradle assembleDebug
 ```
-
-APK appears at `app/build/outputs/apk/debug/`.
 
 ## Target device
 
-Optimized for **Poco X3 Pro** (Android 12 / API 31) while remaining compatible with newer Android versions.
+Optimized for **Poco X3 Pro** (Android 12 / API 31).
 
-## Safety principles
+## Privacy
 
-- Explicit user permission for sensitive capabilities
-- Confirmation before sensitive actions
-- No CAPTCHA bypass or unrestricted hidden-screen access
-- Proper lifecycle, error handling and resource cleanup
+- Microphone requested only when listening
+- No raw audio storage by default
+- No mandatory backend
+- System recognition network status is shown honestly
 
 ---
 
