@@ -109,7 +109,7 @@ class VoiceAssistantSession(context: Context) : VoiceInteractionSession(context)
             text = "Listening…"
             setTextColor(ACCENT)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
-            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.MEDIUM)
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             gravity = Gravity.CENTER
         }
         card.addView(statusView)
