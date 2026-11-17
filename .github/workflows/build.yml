@@ -7,6 +7,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  ANDROID_HOME: /usr/local/lib/android/sdk
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,19 +26,17 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        continue-on-error: true
-
-      - name: Accept licenses and install packages
+      - name: Ensure Android SDK packages
         run: |
-          set +e
-          yes | sdkmanager --licenses >/dev/null 2>&1
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-          echo "ANDROID_HOME=${ANDROID_HOME:-$HOME/Android/Sdk}"
-          export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
+          export ANDROID_HOME=/usr/local/lib/android/sdk
           echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          ls -la "$ANDROID_HOME" || true
+          SDKMANAGER=$(find $ANDROID_HOME/cmdline-tools -name sdkmanager 2>/dev/null | head -1)
+          echo "sdkmanager=$SDKMANAGER"
+          if [ -n "$SDKMANAGER" ]; then
+            yes | $SDKMANAGER --licenses >/dev/null 2>&1 || true
+            $SDKMANAGER "platform-tools" "platforms;android-35" "build-tools;35.0.0" || true
+          fi
+          ls -la $ANDROID_HOME/platforms || true
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -43,14 +44,15 @@ jobs:
           gradle-version: '8.11.1'
 
       - name: Unit tests
-        run: gradle testDebugUnitTest --stacktrace --no-daemon || true
+        run: gradle testDebugUnitTest --stacktrace --no-daemon
+        continue-on-error: true
         env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_HOME: /usr/local/lib/android/sdk
 
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace --no-daemon
         env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_HOME: /usr/local/lib/android/sdk
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
