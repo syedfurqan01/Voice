@@ -12,8 +12,8 @@ android {
         applicationId = "com.feathertech.voice"
         minSdk = 31          // Android 12 — optimized for Poco X3 Pro
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0-phase2"
+        versionCode = 3
+        versionName = "0.2.1-phase2-hotfix"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
