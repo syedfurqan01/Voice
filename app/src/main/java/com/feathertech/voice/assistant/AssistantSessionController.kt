@@ -5,11 +5,11 @@ import android.util.Log
 import com.feathertech.voice.command.CommandResult
 import com.feathertech.voice.command.VoiceCommandProcessor
 import com.feathertech.voice.speech.LanguagePreferences
+import com.feathertech.voice.speech.RecognitionDiagnostics
 import com.feathertech.voice.speech.SpeechRecognitionManager
 import com.feathertech.voice.speech.SpeechState
 import com.feathertech.voice.speech.TextToSpeechManager
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -33,17 +33,18 @@ class AssistantSessionController(
     private val commands = VoiceCommandProcessor(context)
     private val languagePrefs = LanguagePreferences(context)
 
-    private var languageJob: Job? = null
+    private var stateJob: Job? = null
+    private var diagJob: Job? = null
     private var currentLanguage = LanguagePreferences.DEFAULT
     private var onStateChanged: ((SpeechState) -> Unit)? = null
+    private var onDiagnostics: ((RecognitionDiagnostics) -> Unit)? = null
 
     val speechState: StateFlow<SpeechState> = recognition.state
 
     fun setStateListener(listener: (SpeechState) -> Unit) {
         onStateChanged = listener
-        // Also collect flow into the callback
-        languageJob?.cancel()
-        languageJob = scope.launch {
+        stateJob?.cancel()
+        stateJob = scope.launch {
             recognition.state.collect { state ->
                 onStateChanged?.invoke(state)
                 if (state is SpeechState.FinalResult) {
@@ -56,12 +57,27 @@ class AssistantSessionController(
         }
     }
 
+    fun setDiagnosticsListener(listener: (RecognitionDiagnostics) -> Unit) {
+        onDiagnostics = listener
+        diagJob?.cancel()
+        diagJob = scope.launch {
+            recognition.diagnostics.collect { diag ->
+                onDiagnostics?.invoke(diag)
+            }
+        }
+        // Immediate snapshot
+        recognition.refreshDiagnostics(currentLanguage)
+        onDiagnostics?.invoke(recognition.diagnostics.value)
+    }
+
     fun startListening() {
         if (!recognition.hasMicrophonePermission()) {
             recognition.markError("Microphone permission required", recoverable = false)
             return
         }
-        recognition.start(currentLanguage)
+        recognition.refreshDiagnostics(currentLanguage)
+        // Prefer system online recognizer first; on-device only if caller sets preferOnDevice
+        recognition.start(currentLanguage, preferOnDevice = false)
     }
 
     fun stopListening() {
@@ -80,10 +96,12 @@ class AssistantSessionController(
     }
 
     fun destroy() {
-        languageJob?.cancel()
+        stateJob?.cancel()
+        diagJob?.cancel()
         recognition.destroy()
         tts.shutdown()
         onStateChanged = null
+        onDiagnostics = null
     }
 
     fun requiresNetwork(): Boolean = recognition.requiresNetwork

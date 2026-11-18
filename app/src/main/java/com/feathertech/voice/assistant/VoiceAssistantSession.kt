@@ -3,7 +3,6 @@ package com.feathertech.voice.assistant
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -16,15 +15,17 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import com.feathertech.voice.speech.RecognitionDiagnostics
 import com.feathertech.voice.speech.SpeechState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /**
- * Phase 2 session: minimal listening overlay with real STT + TTS.
- * No permanent floating bubble. Resources released on hide/destroy.
+ * Phase 2.1 session: minimal listening overlay with diagnostics.
+ * Shows real recognition status / error codes — never hides failures.
  */
 class VoiceAssistantSession(context: Context) : VoiceInteractionSession(context) {
 
@@ -44,8 +45,8 @@ class VoiceAssistantSession(context: Context) : VoiceInteractionSession(context)
 
     private lateinit var statusView: TextView
     private lateinit var transcriptView: TextView
+    private lateinit var diagnosticsView: TextView
     private lateinit var hintView: TextView
-    private lateinit var networkNote: TextView
 
     override fun onCreate() {
         super.onCreate()
@@ -61,13 +62,15 @@ class VoiceAssistantSession(context: Context) : VoiceInteractionSession(context)
         setContentView(root)
 
         controller?.setStateListener { state -> updateUi(state) }
+        controller?.setDiagnosticsListener { diag -> updateDiagnostics(diag) }
 
         if (hasMicPermission()) {
             controller?.startListening()
         } else {
             statusView.text = "Microphone permission needed"
             statusView.setTextColor(ERROR)
-            transcriptView.text = "Grant microphone access in system settings, then invoke Voice again."
+            transcriptView.text =
+                "Grant microphone access in App info → Permissions, then invoke Voice again."
             hintView.text = "Tap outside or press back to dismiss"
         }
     }
@@ -125,16 +128,15 @@ class VoiceAssistantSession(context: Context) : VoiceInteractionSession(context)
         }
         card.addView(transcriptView)
 
-        networkNote = TextView(context).apply {
-            text = if (controller?.requiresNetwork() == true)
-                "Recognition uses the system service (network required)"
-            else ""
+        diagnosticsView = TextView(context).apply {
+            text = "Checking recognition…"
             setTextColor(TEXT_SECONDARY)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
             gravity = Gravity.CENTER
-            setPadding(0, dp(4), 0, 0)
+            setPadding(0, dp(8), 0, 0)
+            setLineSpacing(0f, 1.2f)
         }
-        card.addView(networkNote)
+        card.addView(diagnosticsView)
 
         hintView = TextView(context).apply {
             text = "Say a command · back to dismiss"
@@ -147,7 +149,7 @@ class VoiceAssistantSession(context: Context) : VoiceInteractionSession(context)
 
         val outer = FrameLayout(context).apply {
             setBackgroundColor(BG)
-            setOnClickListener { hide() } // tap outside card dismisses
+            setOnClickListener { hide() }
         }
         val lp = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
@@ -157,7 +159,6 @@ class VoiceAssistantSession(context: Context) : VoiceInteractionSession(context)
             marginStart = dp(24)
             marginEnd = dp(24)
         }
-        // Prevent card clicks from dismissing
         card.setOnClickListener { /* consume */ }
         outer.addView(card, lp)
         return outer
@@ -179,6 +180,7 @@ class VoiceAssistantSession(context: Context) : VoiceInteractionSession(context)
                 statusView.text = "Listening…"
                 statusView.setTextColor(ACCENT)
                 transcriptView.text = ""
+                hintView.text = "Speak now · back to dismiss"
             }
             is SpeechState.PartialResult -> {
                 statusView.text = "Listening…"
@@ -203,8 +205,27 @@ class VoiceAssistantSession(context: Context) : VoiceInteractionSession(context)
                 statusView.text = "Error"
                 statusView.setTextColor(ERROR)
                 transcriptView.text = state.message
-                hintView.text = if (state.recoverable) "Try again" else "Check settings"
+                hintView.text = if (state.recoverable) {
+                    "Tap outside, then invoke again to retry"
+                } else {
+                    "Check microphone permission / Google app"
+                }
             }
         }
+    }
+
+    private fun updateDiagnostics(d: RecognitionDiagnostics) {
+        val avail = if (d.recognitionAvailable) "Yes" else "No"
+        val onDevice = if (d.onDeviceAvailable) "Yes" else "No"
+        val provider = d.providerPackage ?: "—"
+        val lang = d.languageTag.ifEmpty { "—" }
+        val err = if (d.lastErrorCode != null) {
+            "\nLast error: ${d.lastErrorCode} — ${d.lastErrorMessage ?: ""}"
+        } else {
+            ""
+        }
+        diagnosticsView.text =
+            "Recognition: $avail · On-device: $onDevice\n" +
+            "Provider: $provider · Lang: $lang$err"
     }
 }

@@ -3,6 +3,27 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Network needed by the system online SpeechRecognizer on most devices -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+      Android 11+ package visibility: required so SpeechRecognizer can discover
+      RecognitionService providers (Google, MIUI, etc.). Without this, recognition
+      often fails with NO_MATCH / client errors on Poco / MIUI.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+        <package android:name="com.google.android.googlequicksearchbox" />
+        <package android:name="com.google.android.tts" />
+        <package android:name="com.google.android.as" />
+        <package android:name="com.xiaomi.mibrain.speech" />
+    </queries>
 
     <application
         android:name=".VoiceApplication"
@@ -47,10 +68,14 @@
             android:exported="true"
             android:permission="android.permission.BIND_VOICE_INTERACTION" />
 
-        <!-- Recognition service referenced by the meta-data -->
+        <!--
+          Keep RecognitionService component for manifest completeness, but it is
+          no longer referenced from voice_interaction_service metadata so the
+          system does not route assist listening through our Phase-2 stub.
+        -->
         <service
             android:name=".assistant.VoiceRecognitionService"
-            android:exported="true"
+            android:exported="false"
             android:permission="android.permission.BIND_RECOGNITION_SERVICE">
             <intent-filter>
                 <action android:name="android.speech.RecognitionService" />
